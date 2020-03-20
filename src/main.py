@@ -5,9 +5,21 @@ import re
 from pathlib import Path
 from collections import Counter
 
+
+def get_language(json_object, code):
+  return [obj for obj in json_object if obj['code'] == code][0]['name']
+
+twitter_languages_file = "languages_custom.json"
+
 data_folder = Path("../data/")
 
 data_set = data_folder / "tinyTwitter.json"
+
+
+# Read supported Twitter languages from file
+with open (twitter_languages_file) as language_file:
+  languages = json.load(language_file)
+  print(languages)
 
 with open(data_set) as file:
 
@@ -33,4 +45,12 @@ tweets = data['rows']
 
 # Couting tweet languages
 c = Counter(tweet['doc']['metadata']['iso_language_code'] for tweet in tweets)
-print(c)
+top_languages = c.most_common(10)
+
+for language in top_languages:
+  print(get_language(languages, language[0]) + " - " + str(language[1]))
+
+#for key, value in top_languages.items():
+#  print(key)
+#  print(get_language(languages, key) + " - " + str(value))
+
