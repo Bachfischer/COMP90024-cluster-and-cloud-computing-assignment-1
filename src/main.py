@@ -6,14 +6,24 @@ from pathlib import Path
 from collections import Counter
 
 
+def extract_hashtags(tweets):
+  # List of all extracted hashtags
+  extracted_hashtags = []
+  for tweet in tweets:
+    for hashtag in tweet['doc']['entities']['hashtags']:
+      extracted_hashtags.append(hashtag['text'].lower())
+
+  return extracted_hashtags
+
 def get_language(json_object, code):
   return [obj for obj in json_object if obj['code'] == code][0]['name']
+
 
 twitter_languages_file = "languages_custom.json"
 
 data_folder = Path("../data/")
 
-data_set = data_folder / "tinyTwitter.json"
+data_set = data_folder / "smallTwitter.json"
 
 
 # Read supported Twitter languages from file
@@ -43,12 +53,31 @@ with open(data_set) as file:
 
 tweets = data['rows']
 
-# Couting tweet languages
-c = Counter(tweet['doc']['metadata']['iso_language_code'] for tweet in tweets)
-top_languages = c.most_common(10)
+# Extract hashtags from all tweets and add to list
+extracted_hashtag = extract_hashtags(tweets)
 
-for language in top_languages:
-  print(get_language(languages, language[0]) + " - " + str(language[1]))
+# Counting hashtags
+counter_hashtag = Counter(extracted_hashtag)
+
+# Printing most common hashtags
+i = 1
+print("")
+print("Most common hashtags in dataset")
+for hashtag in counter_hashtag.most_common(10):
+  print(str(i) + ". #" + hashtag[0] + "," + str(hashtag[1]))
+  i +=1
+
+
+# Couting tweet languages
+counter_language = Counter(tweet['doc']['metadata']['iso_language_code'] for tweet in tweets)
+
+# Printing most common tweet languages
+j = 1
+print("")
+print("Most common languages in dataset:")
+for language in counter_language.most_common(10):
+  print(str(j) + ". " + get_language(languages, language[0]) + " (" + language[0] + ")" + ", " + str(language[1]))
+  j +=1
 
 #for key, value in top_languages.items():
 #  print(key)
