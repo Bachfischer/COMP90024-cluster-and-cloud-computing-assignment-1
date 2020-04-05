@@ -15,11 +15,14 @@ def extract_hashtags(tweets):
 
   return extracted_hashtags
 
-def get_language(json_object, code):
-  return [obj for obj in json_object if obj['code'] == code][0]['name']
+def get_language(tweet_language_code):
+  for language in supported_languages:
+    if language['code'] == tweet_language_code:
+      return language['name']
+  return "Unknown"
 
 
-twitter_languages_file = "languages_custom.json"
+twitter_languages_file = "languages.json"
 
 data_folder = Path("../data/")
 
@@ -28,8 +31,7 @@ data_set = data_folder / "smallTwitter.json"
 
 # Read supported Twitter languages from file
 with open (twitter_languages_file) as language_file:
-  languages = json.load(language_file)
-  print(languages)
+  supported_languages = json.load(language_file)
 
 with open(data_set) as file:
 
@@ -76,7 +78,7 @@ j = 1
 print("")
 print("Most common languages in dataset:")
 for language in counter_language.most_common(10):
-  print(str(j) + ". " + get_language(languages, language[0]) + " (" + language[0] + ")" + ", " + str(language[1]))
+  print(str(j) + ". " + get_language(language[0]) + " (" + language[0] + ")" + ", " + str(language[1]))
   j +=1
 
 #for key, value in top_languages.items():
