@@ -32,20 +32,26 @@ print("tweet-analyzer running on " + str(comm.size) + " cores")
 
 # Read configuration options
 
-with open("config.json") as config_file:
+path_current_dir = Path(__file__).parent.absolute()
+
+path_config_file = path_current_dir.joinpath("config.json")
+
+with open(str(path_config_file)) as config_file:
   config = json.load(config_file)
 
-if config['production'] == True: # Spartan
+if config['production'] == True: # running on spartan
   home = str(Path.home())
   dataset_file = home + "/" + config['dataset']
-else: # local development machine
+
+else: # running on local development machine
   data_folder = Path("../data/")
   dataset_file = data_folder / config['dataset']
 
 
 # Read supported Twitter languages from file
 twitter_language_file = config['supported_languages']
-supported_languages = load_supported_languages(twitter_language_file)
+path_language_file = path_current_dir.joinpath(twitter_language_file)
+supported_languages = load_supported_languages(path_language_file)
 
 
 if rank == 0:

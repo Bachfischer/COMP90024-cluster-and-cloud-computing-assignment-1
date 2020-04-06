@@ -47,13 +47,13 @@ def get_language(supported_languages, tweet_language_code):
 
 # TODO: Error handling
 def load_supported_languages(twitter_language_file):
-  with open(twitter_language_file) as language_file:
+  with open(str(twitter_language_file)) as language_file:
     supported_languages = json.load(language_file)
     return supported_languages
 
 # TODO: Error handling
 def load_dataset(dataset_file):
-  with open(dataset_file) as file:
+  with open(str(dataset_file)) as file:
     json_string = file.read()
 
     while True:
