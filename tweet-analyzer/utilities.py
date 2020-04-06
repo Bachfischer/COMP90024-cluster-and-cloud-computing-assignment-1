@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import re
+import json
 
 
 #TODO: replace with proper regex parsing
@@ -43,3 +44,28 @@ def get_language(supported_languages, tweet_language_code):
     if language['code'] == tweet_language_code:
       return language['name']
   return "Unknown"
+
+# TODO: Error handling
+def load_supported_languages(twitter_language_file):
+  with open(twitter_language_file) as language_file:
+    supported_languages = json.load(language_file)
+    return supported_languages
+
+# TODO: Error handling
+def load_dataset(dataset_file):
+  with open(dataset_file) as file:
+    json_string = file.read()
+
+    while True:
+      try:
+        # TODO: Fine more elegant solution for parsing corrupt JSON
+        print("Trying to load JSON file")
+        data = json.loads(json_string + "]}")  # adding missing brackets - expecting to add "]}"
+
+      except Exception as e:
+        print("Error loading JSON file - trying to fix corrupt data")
+        json_string = json_string[:-1]  # Removing last character - expecting to remove ","
+        continue
+      break
+
+  return data['rows']

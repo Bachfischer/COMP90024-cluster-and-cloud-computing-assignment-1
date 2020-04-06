@@ -1,70 +1,87 @@
 #!/usr/bin/env python
 
 import json
-import re
 from pathlib import Path
 from collections import Counter
-import string
-from utilities import get_language, extract_hashtags
+from utilities import get_language, extract_hashtags, load_supported_languages, load_dataset, divide_list_into_chunks
+from mpi4py import MPI
+import numpy as np
+
+
+def data_processing(tweets):
+  # Extract hashtags from all tweets and add to list
+  extracted_hashtag = extract_hashtags(tweets)
+
+  # Counting hashtags
+  counter_hashtag = Counter(extracted_hashtag)
+
+  # Printing most common hashtags
+  i = 1
+  print("")
+  print("Most common hashtags in dataset")
+  for hashtag in counter_hashtag.most_common(10):
+    print(str(i) + ". #" + hashtag[0] + "," + str(hashtag[1]))
+    i +=1
+
+
+  # Couting tweet languages
+  counter_language = Counter(tweet['doc']['metadata']['iso_language_code'] for tweet in tweets)
+
+  # Printing most common tweet languages
+  j = 1
+  print("")
+  print("Most common languages in dataset:")
+  for language in counter_language.most_common(10):
+    print(str(j) + ". " + get_language(supported_languages, language[0]) + " (" + language[0] + ")" + ", " + str(language[1]))
+    j +=1
+
+
+comm = MPI.COMM_WORLD
+size = comm.Get_size()
+rank = comm.Get_rank()
+
+print("tweet-analyzer running on " + str(comm.size) + " cores")
+
+
+# Read configuration options
 
 with open("config.json") as config_file:
   config = json.load(config_file)
 
-
-if config['production'] == True:
+if config['production'] == True: # Spartan
   home = str(Path.home())
-  data_set = home + "/" + config['dataset']
+  dataset_file = home + "/" + config['dataset']
 else: # local development machine
   data_folder = Path("../data/")
-  data_set = data_folder / config['dataset']
+  dataset_file = data_folder / config['dataset']
 
-twitter_languages_file = config['supported_languages']
 
 # Read supported Twitter languages from file
-with open (twitter_languages_file) as language_file:
-  supported_languages = json.load(language_file)
-
-with open(data_set) as file:
-
-  json_string = file.read()
-
-  while True:
-
-    try:
-      # TODO: Fine more elegant solution for parsing corrupt JSON
-      print("Trying to load JSON file")
-      data = json.loads(json_string + "]}") # adding missing brackets - expecting to add "]}"
-
-    except Exception as e:
-      print("Error loading JSON file - trying to fix corrupt data")
-      json_string = json_string[:-1] # Removing last character - expecting to remove ","
-      continue
-    break
-
-tweets = data['rows']
-
-# Extract hashtags from all tweets and add to list
-extracted_hashtag = extract_hashtags(tweets)
-
-# Counting hashtags
-counter_hashtag = Counter(extracted_hashtag)
-
-# Printing most common hashtags
-i = 1
-print("")
-print("Most common hashtags in dataset")
-for hashtag in counter_hashtag.most_common(10):
-  print(str(i) + ". #" + hashtag[0] + "," + str(hashtag[1]))
-  i +=1
+twitter_language_file = config['supported_languages']
+supported_languages = load_supported_languages(twitter_language_file)
 
 
-# Couting tweet languages
-counter_language = Counter(tweet['doc']['metadata']['iso_language_code'] for tweet in tweets)
+if rank == 0:
+  # Read dataset
+  tweets = load_dataset(dataset_file)
 
-# Printing most common tweet languages
-j = 1
-print("")
-print("Most common languages in dataset:")
-for language in counter_language.most_common(10):
-  print(str(j) + ". " + get_language(supported_languages, language[0]) + " (" + language[0] + ")" + ", " + str(language[1]))
-  j +=1
+  # dividing data into chunks
+  chunks = [[] for _ in range(size)]
+  for i, chunk in enumerate(tweets):
+    chunks[i % size].append(chunk)
+
+else:
+  tweets = None
+  chunks = None
+
+
+# scatter requires a list of exactly comm.size elements as data to be scattered; so
+tweets = comm.scatter(chunks, root=0)
+print("Success")
+data_processing(tweets)
+
+#Wait until everyone is ready
+comm.Barrier()
+
+
+#print('Rank: ',rank, ', recvbuf received: ',recvbuf)
