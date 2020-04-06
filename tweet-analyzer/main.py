@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 from collections import Counter
-from utilities import get_language, extract_hashtags, load_supported_languages, load_dataset, divide_list_into_chunks
+from utilities import get_language, extract_hashtags, load_supported_languages, load_dataset, print_results
 from mpi4py import MPI
 import numpy as np
 
@@ -15,25 +15,13 @@ def data_processing(tweets):
   # Counting hashtags
   counter_hashtag = Counter(extracted_hashtag)
 
-  # Printing most common hashtags
-  i = 1
-  print("")
-  print("Most common hashtags in dataset")
-  for hashtag in counter_hashtag.most_common(10):
-    print(str(i) + ". #" + hashtag[0] + "," + str(hashtag[1]))
-    i +=1
-
-
   # Couting tweet languages
   counter_language = Counter(tweet['doc']['metadata']['iso_language_code'] for tweet in tweets)
 
-  # Printing most common tweet languages
-  j = 1
-  print("")
-  print("Most common languages in dataset:")
-  for language in counter_language.most_common(10):
-    print(str(j) + ". " + get_language(supported_languages, language[0]) + " (" + language[0] + ")" + ", " + str(language[1]))
-    j +=1
+  results = {}
+  results["hashtag"] = counter_hashtag
+  results["language"] = counter_language
+  return results
 
 
 comm = MPI.COMM_WORLD
@@ -41,7 +29,6 @@ size = comm.Get_size()
 rank = comm.Get_rank()
 
 print("tweet-analyzer running on " + str(comm.size) + " cores")
-
 
 # Read configuration options
 
@@ -77,11 +64,29 @@ else:
 
 # scatter requires a list of exactly comm.size elements as data to be scattered; so
 tweets = comm.scatter(chunks, root=0)
-print("Success")
-data_processing(tweets)
+results = data_processing(tweets)
+
+
+print("\nResults from process " + str(rank), flush=True)
+print_results(results["hashtag"], results["language"], supported_languages)
+
+
+result_reduce = comm.gather(results, root=0)
 
 #Wait until everyone is ready
 comm.Barrier()
 
 
-#print('Rank: ',rank, ', recvbuf received: ',recvbuf)
+if rank == 0:
+  counter_hashtag = Counter()
+  counter_language = Counter()
+
+  for counter_dict in result_reduce:
+    counter_hashtag = counter_hashtag + counter_dict["hashtag"]
+    counter_language = counter_language + counter_dict["language"]
+
+  print("")
+  print("Final results")
+  print_results(counter_hashtag, counter_language, supported_languages)
+
+

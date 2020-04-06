@@ -69,3 +69,24 @@ def load_dataset(dataset_file):
       break
 
   return data['rows']
+
+def print_results(counter_hashtag, counter_language, supported_languages):
+  print_results_hashtag_analysis(counter_hashtag)
+  print_results_language_analysis(counter_language, supported_languages)
+
+
+def print_results_hashtag_analysis(counter_hashtag):
+  # Printing most common hashtags
+  i = 1
+  print("Most common hashtags in dataset", flush=True)
+  for hashtag in counter_hashtag.most_common(10):
+    print(str(i) + ". #" + hashtag[0] + "," + str(hashtag[1]), flush=True)
+    i +=1
+
+def print_results_language_analysis(counter_language, supported_languages):
+  # Printing most common tweet languages
+  j = 1
+  print("Most common languages in dataset:", flush=True)
+  for language in counter_language.most_common(10):
+    print(str(j) + ". " + get_language(supported_languages, language[0]) + " (" + language[0] + ")" + ", " + str(language[1]), flush=True)
+    j +=1
