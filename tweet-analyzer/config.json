@@ -1,4 +1,5 @@
 {
     "supported_languages": "languages.json",
-    "dataset": "smallTwitter.json"
+    "dataset": "smallTwitter.json",
+    "production": true
 }
