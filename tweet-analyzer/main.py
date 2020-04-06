@@ -5,18 +5,20 @@ import re
 from pathlib import Path
 from collections import Counter
 import string
-from  utilities import get_language, extract_hashtags
+from utilities import get_language, extract_hashtags
 
 with open("config.json") as config_file:
   config = json.load(config_file)
 
 
-data_folder = Path("../data/")
+if config['production'] == True:
+  home = str(Path.home())
+  data_set = home + "/" + config['dataset']
+else: # local development machine
+  data_folder = Path("../data/")
+  data_set = data_folder / config['dataset']
 
 twitter_languages_file = config['supported_languages']
-
-data_set = data_folder / config['dataset']
-
 
 # Read supported Twitter languages from file
 with open (twitter_languages_file) as language_file:
@@ -25,7 +27,6 @@ with open (twitter_languages_file) as language_file:
 with open(data_set) as file:
 
   json_string = file.read()
-  #print(json_string)
 
   while True:
 
@@ -39,8 +40,6 @@ with open(data_set) as file:
       json_string = json_string[:-1] # Removing last character - expecting to remove ","
       continue
     break
-
-#print(data)
 
 tweets = data['rows']
 
@@ -69,8 +68,3 @@ print("Most common languages in dataset:")
 for language in counter_language.most_common(10):
   print(str(j) + ". " + get_language(supported_languages, language[0]) + " (" + language[0] + ")" + ", " + str(language[1]))
   j +=1
-
-#for key, value in top_languages.items():
-#  print(key)
-#  print(get_language(languages, key) + " - " + str(value))
-
