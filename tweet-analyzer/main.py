@@ -4,29 +4,18 @@ import json
 import re
 from pathlib import Path
 from collections import Counter
+import string
+from  utilities import get_language, extract_hashtags
 
+with open("config.json") as config_file:
+  config = json.load(config_file)
 
-def extract_hashtags(tweets):
-  # List of all extracted hashtags
-  extracted_hashtags = []
-  for tweet in tweets:
-    for hashtag in tweet['doc']['entities']['hashtags']:
-      extracted_hashtags.append(hashtag['text'].lower())
-
-  return extracted_hashtags
-
-def get_language(tweet_language_code):
-  for language in supported_languages:
-    if language['code'] == tweet_language_code:
-      return language['name']
-  return "Unknown"
-
-
-twitter_languages_file = "languages.json"
 
 data_folder = Path("../data/")
 
-data_set = data_folder / "smallTwitter.json"
+twitter_languages_file = config['supported_languages']
+
+data_set = data_folder / config['dataset']
 
 
 # Read supported Twitter languages from file
@@ -78,7 +67,7 @@ j = 1
 print("")
 print("Most common languages in dataset:")
 for language in counter_language.most_common(10):
-  print(str(j) + ". " + get_language(language[0]) + " (" + language[0] + ")" + ", " + str(language[1]))
+  print(str(j) + ". " + get_language(supported_languages, language[0]) + " (" + language[0] + ")" + ", " + str(language[1]))
   j +=1
 
 #for key, value in top_languages.items():
