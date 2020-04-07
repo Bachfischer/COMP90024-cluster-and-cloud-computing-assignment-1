@@ -4,6 +4,10 @@
 
 - Setup Code Linter
 
+- Run benchmarks via time srun
+
+- Investigate difference between Scatter / Gather and Map / Reduce
+
 ## Part 1: Identification of common hashtags
 
 - Identify the top 10 most commonly used hashtags and the number of times they appear. A matching hashtag string can match if it has upper/lower case exact substrings, e.g. #covid19 and #COVID19 are a match. A hashtag should follow the Twitter rules, e.g. no spaces and no punctuation are allowed in a hashtag. 
@@ -27,6 +31,9 @@ Standard for language code: https://en.wikipedia.org/wiki/List_of_ISO_639-1_code
 Standard for country code: https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
 
 
+## Instructions
+
+Submit job by running the command ```sbatch __path_to_slurm_script__```
 
 ## Notes
 
