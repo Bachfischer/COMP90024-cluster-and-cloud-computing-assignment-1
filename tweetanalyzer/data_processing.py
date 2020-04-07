@@ -21,33 +21,31 @@ def process_tweets(tweets):
 
 # TODO: Error handling
 def process_wrapper(path_to_dataset, chunkStart, chunkSize):
-    with open(path_to_dataset) as f:
+    with open(path_to_dataset, encoding="utf-8") as f:
         f.seek(chunkStart)
+        print("Current position: " + str(f.tell()))
         content = f.read(chunkSize).splitlines()
-        data = []
-        while True:
+        tweets = []
+
+        for line in content:
+            line = line[:-1]  # removing trailing comma
             try:
-                # TODO: Fine more elegant solution for parsing corrupt JSON
-                print("Trying to load JSON file")
-                for line in content:
-                    line = line[:-1] # removing trailing comma
-                    data.append(json.loads(line))
+                # TODO: Find more elegant solution for parsing corrupt JSON
+                tweets.append(json.loads(line))
                 #data = json.loads(content + "]}")  # adding missing brackets - expecting to add "]}"
 
             except Exception as e:
                 print("Error loading JSON file - trying to fix corrupt data")
                 content = content[:-1]  # Removing last character - expecting to remove ","
-                continue
-            break
 
-        tweets = data
+
         result = process_tweets(tweets)
         return result
 
 # TODO: Replace size with parameter as per Liams comment
 def chunkify(path_to_dataset,dataset_size_per_process):
     total_file_size = os.path.getsize(path_to_dataset)
-    with open(path_to_dataset,'r') as f:
+    with open(path_to_dataset,'r', encoding="utf-8") as f:
         chunkEnd = f.tell()
 
         while True:
@@ -56,6 +54,8 @@ def chunkify(path_to_dataset,dataset_size_per_process):
             f.seek( f.tell() + dataset_size_per_process)
             f.readline()
             chunkEnd = f.tell()
+            if chunkEnd > total_file_size:
+                chunkEnd = total_file_size
             yield chunkStart, chunkEnd - chunkStart
             if chunkEnd >= total_file_size:
                 break
