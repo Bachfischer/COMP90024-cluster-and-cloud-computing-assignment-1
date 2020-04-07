@@ -6,4 +6,4 @@
 #SBATCH --cpus-per-task 1
 module purge
 module load Python/3.5.2-goolf-2015a
-mpirun python ../tweet-analyzer/main.py
+mpirun python ../tweetanalyzer/main.py
