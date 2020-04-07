@@ -3,32 +3,16 @@
 import json
 from pathlib import Path
 from collections import Counter
-from utilities import get_language, extract_hashtags, load_supported_languages, load_dataset, print_results
 from mpi4py import MPI
-import numpy as np
-
-
-def data_processing(tweets):
-  # Extract hashtags from all tweets and add to list
-  extracted_hashtag = extract_hashtags(tweets)
-
-  # Counting hashtags
-  counter_hashtag = Counter(extracted_hashtag)
-
-  # Couting tweet languages
-  counter_language = Counter(tweet['doc']['metadata']['iso_language_code'] for tweet in tweets)
-
-  results = {}
-  results["hashtag"] = counter_hashtag
-  results["language"] = counter_language
-  return results
-
+import os
+from tweetanalyzer.utilities import load_supported_languages, print_results
+from tweetanalyzer.data_processing import chunkify, process_wrapper
 
 comm = MPI.COMM_WORLD
 size = comm.Get_size()
 rank = comm.Get_rank()
 
-print("tweet-analyzer running on " + str(comm.size) + " cores")
+print("tweetanalyzer running on " + str(comm.size) + " cores")
 
 # Read configuration options
 
@@ -39,12 +23,12 @@ path_config_file = path_current_dir.joinpath("config.json")
 with open(str(path_config_file)) as config_file:
   config = json.load(config_file)
 
-if config['production'] == True: # running on spartan
+if config['production'] == True: # running on spartan - reading dataset relative to home directory
   home = str(Path.home())
   dataset_file = home + "/" + config['dataset']
 
-else: # running on local development machine
-  data_folder = Path("../data/")
+else: # running on local development machine - reading dataset from data folder
+  data_folder = Path("./data/")
   dataset_file = data_folder / config['dataset']
 
 
@@ -56,21 +40,29 @@ supported_languages = load_supported_languages(path_language_file)
 
 if rank == 0:
   # Read dataset
-  tweets = load_dataset(dataset_file)
+  #tweets = load_dataset(dataset_file)
+  dataset_size_total = os.path.getsize(dataset_file)
+  dataset_size_per_process = dataset_size_total / size
 
   # dividing data into chunks
-  chunks = [[] for _ in range(size)]
-  for i, chunk in enumerate(tweets):
-    chunks[i % size].append(chunk)
+  instructions = []
+
+  for chunkStart, chunkSize in chunkify(dataset_file, int(dataset_size_per_process)):
+    instructions.append({"chunkStart": chunkStart, "chunkSize": chunkSize})
+
+
 
 else:
-  tweets = None
-  chunks = None
+  chunk_dimension = None
+  instructions = None
 
 
 # scatter requires a list of exactly comm.size elements as data to be scattered; so
-tweets = comm.scatter(chunks, root=0)
-results = data_processing(tweets)
+chunk_dimension = comm.scatter(instructions, root=0)
+
+print("chunkStart: " + str(chunk_dimension['chunkStart']) + " -  chunkSize " + str(chunk_dimension['chunkSize']))
+
+results = process_wrapper(dataset_file, chunk_dimension["chunkStart"], chunk_dimension["chunkSize"])
 
 
 print("\nResults from process " + str(rank), flush=True)
