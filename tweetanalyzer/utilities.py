@@ -18,32 +18,33 @@ def remove_punctuation(string):
   return string
 
 
-def extract_hashtags(tweets):
+def extract_hashtags(tweet):
   # List of all extracted hashtags
   extracted_hashtags = []
 
-  for tweet in tweets:
-    # using field ['doc']['entities']['hashtags'] as per Richard's comments on LMS
-    for hashtag in tweet['doc']['entities']['hashtags']:
+  # using field ['doc']['entities']['hashtags'] as per Richard's comments on LMS
+  for hashtag in tweet['doc']['entities']['hashtags']:
 
-      lower_hashtag = hashtag['text'].lower()
-      #remove punctuation and replace with space
-      lower_hashtag = remove_punctuation(lower_hashtag)
+    lower_hashtag = hashtag['text'].lower()
+    #remove punctuation and replace with space
+    lower_hashtag = remove_punctuation(lower_hashtag)
 
-      # if any spaces are present (after removing punctuation
-      if re.search(r"\s", lower_hashtag):
-        print("There is a space present in the hashtag - using only first part of string")
-        lower_hashtag = lower_hashtag.split(" ", 1)
+    # if any spaces are present (after removing punctuation
+    if re.search(r"\s", lower_hashtag):
+      print("There is a space present in the hashtag - using only first part of string")
+      lower_hashtag = lower_hashtag.split(" ", 1)
 
-      extracted_hashtags.append(lower_hashtag)
+    extracted_hashtags.append(lower_hashtag)
 
   return extracted_hashtags
+
 
 def get_language(supported_languages, tweet_language_code):
   for language in supported_languages:
     if language['code'] == tweet_language_code:
       return language['name']
   return "Unknown"
+
 
 # TODO: Error handling
 def load_supported_languages(twitter_language_file):
@@ -64,6 +65,7 @@ def print_results_hashtag_analysis(counter_hashtag):
   for hashtag in counter_hashtag.most_common(10):
     print(str(i) + ". #" + hashtag[0] + "," + str(hashtag[1]), flush=True)
     i +=1
+
 
 def print_results_language_analysis(counter_language, supported_languages):
   # Printing most common tweet languages

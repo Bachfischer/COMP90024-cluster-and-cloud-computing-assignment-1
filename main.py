@@ -6,7 +6,7 @@ from collections import Counter
 from mpi4py import MPI
 import os
 from tweetanalyzer.utilities import load_supported_languages, print_results
-from tweetanalyzer.data_processing import chunkify, process_wrapper
+from tweetanalyzer.data_processing import DataProcessor
 
 comm = MPI.COMM_WORLD
 size = comm.Get_size()
@@ -37,6 +37,7 @@ twitter_language_file = config['supported_languages']
 path_language_file = path_current_dir.joinpath(twitter_language_file)
 supported_languages = load_supported_languages(path_language_file)
 
+data_processor = DataProcessor()
 
 if rank == 0:
   # Read dataset
@@ -47,14 +48,14 @@ if rank == 0:
   # dividing data into chunks
   instructions = []
 
-  for chunkStart, chunkSize in chunkify(dataset_file, int(dataset_size_per_process)):
+  for chunkStart, chunkSize in data_processor.chunkify(dataset_file, int(dataset_size_per_process), dataset_size_total):
     instructions.append({"chunkStart": chunkStart, "chunkSize": chunkSize})
-
-
 
 else:
   chunk_dimension = None
   instructions = None
+
+comm.Barrier()
 
 
 # scatter requires a list of exactly comm.size elements as data to be scattered; so
@@ -62,8 +63,11 @@ chunk_dimension = comm.scatter(instructions, root=0)
 
 print("chunkStart: " + str(chunk_dimension['chunkStart']) + " -  chunkSize " + str(chunk_dimension['chunkSize']))
 
-results = process_wrapper(dataset_file, chunk_dimension["chunkStart"], chunk_dimension["chunkSize"])
+# Start processing
+data_processor.process_wrapper(dataset_file, chunk_dimension["chunkStart"], chunk_dimension["chunkSize"])
 
+# Collect results
+results = data_processor.perform_analysis()
 
 print("\nResults from process " + str(rank), flush=True)
 print_results(results["hashtag"], results["language"], supported_languages)

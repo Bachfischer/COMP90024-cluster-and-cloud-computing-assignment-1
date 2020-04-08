@@ -3,59 +3,96 @@ from collections import Counter
 from .utilities import extract_hashtags
 import json
 
-def process_tweets(tweets):
-  # Extract hashtags from all tweets and add to list
-  extracted_hashtag = extract_hashtags(tweets)
+class DataProcessor(object):
 
-  # Counting hashtags
-  counter_hashtag = Counter(extracted_hashtag)
+    def __init__(self):
+        self.extracted_hashtags_counter = Counter()
 
-  # Couting tweet languages
-  counter_language = Counter(tweet['doc']['metadata']['iso_language_code'] for tweet in tweets)
-
-  result = {}
-  result["hashtag"] = counter_hashtag
-  result["language"] = counter_language
-  return result
+        self.extracted_language_counter = Counter()
 
 
-# TODO: Error handling
-def process_wrapper(path_to_dataset, chunkStart, chunkSize):
-    with open(path_to_dataset, encoding="utf-8") as f:
-        f.seek(chunkStart)
-        print("Current position: " + str(f.tell()))
-        content = f.read(chunkSize).splitlines()
-        tweets = []
+    # TODO refactor
+    def perform_analysis(self):
 
-        for line in content:
-            line = line[:-1]  # removing trailing comma
-            try:
-                # TODO: Find more elegant solution for parsing corrupt JSON
-                tweets.append(json.loads(line))
-                #data = json.loads(content + "]}")  # adding missing brackets - expecting to add "]}"
+        result = {}
+        result["hashtag"] = self.extracted_hashtags_counter
 
-            except Exception as e:
-                print("Error loading JSON file - trying to fix corrupt data")
-                content = content[:-1]  # Removing last character - expecting to remove ","
+        result["language"] = self.extracted_language_counter
 
-
-        result = process_tweets(tweets)
         return result
 
-# TODO: Replace size with parameter as per Liams comment
-def chunkify(path_to_dataset,dataset_size_per_process):
-    total_file_size = os.path.getsize(path_to_dataset)
-    with open(path_to_dataset,'r', encoding="utf-8") as f:
-        chunkEnd = f.tell()
+    def process_tweet(self,tweet):
+        # Extract hashtags from all tweets and add to list
+        hashtags = extract_hashtags(tweet)
+        row_hashtag_counter = Counter(hashtags)
+        self.extracted_hashtags_counter = self.extracted_hashtags_counter + row_hashtag_counter
 
-        while True:
-            chunkStart = chunkEnd
-            # move from current position to current position + chunksize
-            f.seek( f.tell() + dataset_size_per_process)
-            f.readline()
+        # Extract language
+        language = tweet['doc']['metadata']['iso_language_code']
+        self.extracted_language_counter[language] += 1
+
+
+    # TODO: Error handling
+    def process_wrapper(self, path_to_dataset, chunkStart, chunkSize):
+        with open(path_to_dataset, 'rb') as f:
+
+            batchSize = 1024*1024
+
+            readBatches = []
+
+            for readStart, readSize in self.batchify(path_to_dataset, chunkStart, batchSize, chunkSize):
+                readBatches.append({"batchStart": readStart, "batchSize": readSize})
+
+
+            for batch in readBatches:
+                f.seek(batch['batchStart'])
+                #print(str(batch['batchSize']))
+
+                if batch['batchSize'] > 0:
+                    content = f.read(batch['batchSize']).splitlines()
+
+                    for line in content:
+                        line = line[:-1]  # removing trailing comma
+                        try:
+                            # TODO: Find more elegant solution for parsing corrupt JSON
+                            tweet = json.loads(line)
+                            self.process_tweet(tweet)
+                            #data = json.loads(content + "]}")  # adding missing brackets - expecting to add "]}"
+
+                        except Exception as e:
+                            print("Error reading row from JSON file")
+                            #print(line)
+
+    # TODO: Replace size with parameter as per Liams comment
+    def chunkify(self, path_to_dataset, chunkSize, totalSize):
+        with open(path_to_dataset,'rb') as f:
             chunkEnd = f.tell()
-            if chunkEnd > total_file_size:
-                chunkEnd = total_file_size
-            yield chunkStart, chunkEnd - chunkStart
-            if chunkEnd >= total_file_size:
-                break
+
+            while True:
+                chunkStart = chunkEnd
+                # move from current position to current position + chunksize
+                f.seek(f.tell() + chunkSize)
+                f.readline()
+                chunkEnd = f.tell()
+                if chunkEnd > totalSize:
+                    chunkEnd = totalSize
+                yield chunkStart, chunkEnd - chunkStart
+                if chunkEnd >= totalSize:
+                    break
+
+    def batchify(self, path_to_dataset, chunkStart, batchSize, totalSize):
+        with open(path_to_dataset,'rb') as f:
+            batchEnd = chunkStart
+
+            while True:
+                batchStart = batchEnd
+                # move from current position to current position + chunksize
+                f.seek(batchStart + batchSize)
+                f.readline()
+                batchEnd = f.tell()
+                if batchEnd > chunkStart + totalSize:
+                    batchEnd = chunkStart + totalSize
+                yield batchStart, batchEnd - batchStart
+                # End of chunk
+                if batchEnd == chunkStart + totalSize:
+                    break
