@@ -1,8 +1,10 @@
 #!/bin/bash
 #SBATCH --time=00:15:00
 #SBATCH --nodes=1
-#SBATCH --ntasks=1
+#SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
+#SBATCH --output=C-%x.%j.out
+#SBATCH --error=C-%x.%j.err
 module purge
 module load Python/3.5.2-goolf-2015a
-mpirun python ../main.py
+time mpirun python ../main.py

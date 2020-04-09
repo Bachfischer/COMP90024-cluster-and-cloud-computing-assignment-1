@@ -20,35 +20,36 @@ def remove_punctuation(string):
 
 def extract_hashtags(tweet):
   # List of all extracted hashtags
-  extracted_hashtags = []
+  hashtags_in_tweet = []
 
   # using field ['doc']['entities']['hashtags'] as per Richard's comments on LMS
   for hashtag in tweet['doc']['entities']['hashtags']:
 
-    lower_hashtag = hashtag['text'].lower()
+    # convert to lower-case string
+    hashtag = hashtag['text'].lower()
     #remove punctuation and replace with space
-    lower_hashtag = remove_punctuation(lower_hashtag)
+    hashtag = remove_punctuation(hashtag)
 
     # if any spaces are present (after removing punctuation
-    if re.search(r"\s", lower_hashtag):
+    if re.search(r"\s", hashtag):
       print("There is a space present in the hashtag - using only first part of string")
-      lower_hashtag = lower_hashtag.split(" ", 1)
+      hashtag = hashtag.split(" ", 1)
 
-    extracted_hashtags.append(lower_hashtag)
+    hashtags_in_tweet.append(hashtag)
 
-  return extracted_hashtags
+  return hashtags_in_tweet
 
 
 def get_language(supported_languages, tweet_language_code):
   for language in supported_languages:
     if language['code'] == tweet_language_code:
+      # if language code exists, return country name
       return language['name']
   return "Unknown"
 
 
-# TODO: Error handling
-def load_supported_languages(twitter_language_file):
-  with open(str(twitter_language_file)) as language_file:
+def load_supported_languages(path_language_file):
+  with open(path_language_file, 'r') as language_file:
     supported_languages = json.load(language_file)
     return supported_languages
 

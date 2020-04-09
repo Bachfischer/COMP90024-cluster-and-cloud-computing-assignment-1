@@ -1,31 +1,30 @@
-import os
+#!/usr/bin/env python
+
 from collections import Counter
-from .utilities import extract_hashtags
+from .utils import extract_hashtags
 import json
+
 
 class DataProcessor(object):
 
-    def __init__(self):
+    def __init__(self, BATCH_SIZE):
+        self.BATCH_SIZE = BATCH_SIZE
         self.extracted_hashtags_counter = Counter()
-
         self.extracted_language_counter = Counter()
 
 
     # TODO refactor
-    def perform_analysis(self):
-
+    def retrieve_results(self):
         result = {}
         result["hashtag"] = self.extracted_hashtags_counter
-
         result["language"] = self.extracted_language_counter
-
         return result
 
     def process_tweet(self,tweet):
         # Extract hashtags from all tweets and add to list
-        hashtags = extract_hashtags(tweet)
-        row_hashtag_counter = Counter(hashtags)
-        self.extracted_hashtags_counter = self.extracted_hashtags_counter + row_hashtag_counter
+        hashtag_list = extract_hashtags(tweet)
+        for hashtag in hashtag_list:
+            self.extracted_hashtags_counter[hashtag] += 1
 
         # Extract language
         language = tweet['doc']['metadata']['iso_language_code']
@@ -36,34 +35,32 @@ class DataProcessor(object):
     def process_wrapper(self, path_to_dataset, chunkStart, chunkSize):
         with open(path_to_dataset, 'rb') as f:
 
-            batchSize = 1024*1024
+            batches = []
 
-            readBatches = []
+            # Split up chunk into batches of BATCH_SIZE
+            for readStart, readSize in self.batchify(path_to_dataset, chunkStart, chunkSize):
+                batches.append({"batchStart": readStart, "batchSize": readSize})
 
-            for readStart, readSize in self.batchify(path_to_dataset, chunkStart, batchSize, chunkSize):
-                readBatches.append({"batchStart": readStart, "batchSize": readSize})
 
-
-            for batch in readBatches:
+            for batch in batches:
                 f.seek(batch['batchStart'])
-                #print(str(batch['batchSize']))
 
                 if batch['batchSize'] > 0:
                     content = f.read(batch['batchSize']).splitlines()
 
                     for line in content:
-                        line = line[:-1]  # removing trailing comma
+                        line = line.decode('utf-8')     # Convert to utf-8
+                        if line[-1] == ",":    # if line has comma
+                            line = line[:-1]  # removing trailing comma
                         try:
-                            # TODO: Find more elegant solution for parsing corrupt JSON
+
                             tweet = json.loads(line)
                             self.process_tweet(tweet)
-                            #data = json.loads(content + "]}")  # adding missing brackets - expecting to add "]}"
 
                         except Exception as e:
                             print("Error reading row from JSON file")
-                            #print(line)
+                            print(line)
 
-    # TODO: Replace size with parameter as per Liams comment
     def chunkify(self, path_to_dataset, chunkSize, totalSize):
         with open(path_to_dataset,'rb') as f:
             chunkEnd = f.tell()
@@ -77,17 +74,17 @@ class DataProcessor(object):
                 if chunkEnd > totalSize:
                     chunkEnd = totalSize
                 yield chunkStart, chunkEnd - chunkStart
-                if chunkEnd >= totalSize:
+                if chunkEnd == totalSize:
                     break
 
-    def batchify(self, path_to_dataset, chunkStart, batchSize, totalSize):
+    def batchify(self, path_to_dataset, chunkStart, totalSize):
         with open(path_to_dataset,'rb') as f:
             batchEnd = chunkStart
 
             while True:
                 batchStart = batchEnd
                 # move from current position to current position + chunksize
-                f.seek(batchStart + batchSize)
+                f.seek(batchStart + self.batchSize)
                 f.readline()
                 batchEnd = f.tell()
                 if batchEnd > chunkStart + totalSize:

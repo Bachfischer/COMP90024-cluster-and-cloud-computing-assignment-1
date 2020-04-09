@@ -5,36 +5,32 @@ from pathlib import Path
 from collections import Counter
 from mpi4py import MPI
 import os
-from tweetanalyzer.utilities import load_supported_languages, print_results
+import argparse
+from tweetanalyzer.utils import load_supported_languages, print_results
 from tweetanalyzer.data_processing import DataProcessor
 
 comm = MPI.COMM_WORLD
 size = comm.Get_size()
 rank = comm.Get_rank()
 
-print("tweetanalyzer running on " + str(comm.size) + " cores")
+parser = argparse.ArgumentParser(description='Count # of hashtags and languages in Twitter dataset')
+parser.add_argument('--dataset', type=str, default='bigTwitter.json', help='Path to Twitter dataset file')
+parser.add_argument('--language-codes', type=str, default="language_codes.json", help='Path to list of supported language codes')
+parser.add_argument('--batch-size', type=int, default=1024, help='Number of rows to be processed per batch')
+args = parser.parse_args()
 
-# Read configuration options
+print("Tweetanalyzer running on " + str(comm.size) + " cores")
 
 path_current_dir = Path(__file__).parent.absolute()
 
-path_config_file = path_current_dir.joinpath("config.json")
+# Path to dataset in home directory
+home_dir = str(Path.home())
+path_dataset_file = home_dir + "/" + args.dataset
 
-with open(str(path_config_file)) as config_file:
-  config = json.load(config_file)
-
-if config['production'] == True: # running on spartan - reading dataset relative to home directory
-  home = str(Path.home())
-  dataset_file = home + "/" + config['dataset']
-
-else: # running on local development machine - reading dataset from data folder
-  data_folder = Path("./data/")
-  dataset_file = data_folder / config['dataset']
-
+# Path to file with supported languages
+path_language_file = str(path_current_dir.joinpath(args.language_codes))
 
 # Read supported Twitter languages from file
-twitter_language_file = config['supported_languages']
-path_language_file = path_current_dir.joinpath(twitter_language_file)
 supported_languages = load_supported_languages(path_language_file)
 
 data_processor = DataProcessor()
@@ -42,38 +38,37 @@ data_processor = DataProcessor()
 if rank == 0:
   # Read dataset
   #tweets = load_dataset(dataset_file)
-  dataset_size_total = os.path.getsize(dataset_file)
+  dataset_size_total = os.path.getsize(path_dataset_file)
   dataset_size_per_process = dataset_size_total / size
 
   # dividing data into chunks
-  instructions = []
+  chunks = []
 
-  for chunkStart, chunkSize in data_processor.chunkify(dataset_file, int(dataset_size_per_process), dataset_size_total):
-    instructions.append({"chunkStart": chunkStart, "chunkSize": chunkSize})
+  for chunkStart, chunkSize in data_processor.chunkify(path_dataset_file, int(dataset_size_per_process), dataset_size_total):
+    chunks.append({"chunkStart": chunkStart, "chunkSize": chunkSize})
 
 else:
-  chunk_dimension = None
-  instructions = None
+  chunks = None
 
 comm.Barrier()
 
 
 # scatter requires a list of exactly comm.size elements as data to be scattered; so
-chunk_dimension = comm.scatter(instructions, root=0)
+chunk_per_process = comm.scatter(chunks, root=0)
 
-print("chunkStart: " + str(chunk_dimension['chunkStart']) + " -  chunkSize " + str(chunk_dimension['chunkSize']))
+print("chunkStart: " + str(chunk_per_process['chunkStart']) + " -  chunkSize " + str(chunk_per_process['chunkSize']))
 
 # Start processing
-data_processor.process_wrapper(dataset_file, chunk_dimension["chunkStart"], chunk_dimension["chunkSize"])
+data_processor.process_wrapper(path_dataset_file, chunk_per_process["chunkStart"], chunk_per_process["chunkSize"])
 
 # Collect results
-results = data_processor.perform_analysis()
+results = data_processor.retrieve_result()
 
 print("\nResults from process " + str(rank), flush=True)
 print_results(results["hashtag"], results["language"], supported_languages)
 
 
-result_reduce = comm.gather(results, root=0)
+results_from_processes = comm.gather(results, root=0)
 
 #Wait until everyone is ready
 comm.Barrier()
@@ -83,9 +78,9 @@ if rank == 0:
   counter_hashtag = Counter()
   counter_language = Counter()
 
-  for counter_dict in result_reduce:
-    counter_hashtag = counter_hashtag + counter_dict["hashtag"]
-    counter_language = counter_language + counter_dict["language"]
+  for result in results_from_processes:
+    counter_hashtag = counter_hashtag + result["hashtag"]
+    counter_language = counter_language + result["language"]
 
   print("")
   print("Final results")
