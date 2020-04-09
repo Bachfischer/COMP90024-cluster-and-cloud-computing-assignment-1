@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import json
+from datetime import datetime
 from pathlib import Path
 from collections import Counter
 from mpi4py import MPI
@@ -8,6 +8,9 @@ import os
 import argparse
 from tweetanalyzer.utils import load_supported_languages, print_results
 from tweetanalyzer.data_processing import DataProcessor
+
+startTime = None
+endTime = None
 
 comm = MPI.COMM_WORLD
 size = comm.Get_size()
@@ -19,7 +22,7 @@ parser.add_argument('--language-codes', type=str, default="language_codes.json",
 parser.add_argument('--batch-size', type=int, default=1024, help='Number of rows to be processed per batch')
 args = parser.parse_args()
 
-print("Tweetanalyzer running on " + str(comm.size) + " cores")
+print("Tweetanalyzer running on rank " + str(rank) + " out of " + str(comm.size) + " cores")
 
 path_current_dir = Path(__file__).parent.absolute()
 
@@ -33,9 +36,12 @@ path_language_file = str(path_current_dir.joinpath(args.language_codes))
 # Read supported Twitter languages from file
 supported_languages = load_supported_languages(path_language_file)
 
-data_processor = DataProcessor()
+data_processor = DataProcessor(args.batch_size)
+
+startTime = datetime.now()
 
 if rank == 0:
+
   # Read dataset
   #tweets = load_dataset(dataset_file)
   dataset_size_total = os.path.getsize(path_dataset_file)
@@ -62,13 +68,18 @@ print("chunkStart: " + str(chunk_per_process['chunkStart']) + " -  chunkSize " +
 data_processor.process_wrapper(path_dataset_file, chunk_per_process["chunkStart"], chunk_per_process["chunkSize"])
 
 # Collect results
-results = data_processor.retrieve_result()
+results = data_processor.retrieve_results()
 
 print("\nResults from process " + str(rank), flush=True)
 print_results(results["hashtag"], results["language"], supported_languages)
 
 
 results_from_processes = comm.gather(results, root=0)
+
+# Print execution time for worker nodes
+if rank != 0:
+  endTime = datetime.now()
+  print("Execution time on core with rank " + str(rank) + " was: " + str(endTime - startTime))
 
 #Wait until everyone is ready
 comm.Barrier()
@@ -85,5 +96,7 @@ if rank == 0:
   print("")
   print("Final results")
   print_results(counter_hashtag, counter_language, supported_languages)
+  endTime = datetime.now()
+  print("Total execution time was: " + str(endTime- startTime))
 
 

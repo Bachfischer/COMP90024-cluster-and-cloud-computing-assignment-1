@@ -12,8 +12,6 @@ class DataProcessor(object):
         self.extracted_hashtags_counter = Counter()
         self.extracted_language_counter = Counter()
 
-
-    # TODO refactor
     def retrieve_results(self):
         result = {}
         result["hashtag"] = self.extracted_hashtags_counter
@@ -34,13 +32,11 @@ class DataProcessor(object):
     # TODO: Error handling
     def process_wrapper(self, path_to_dataset, chunkStart, chunkSize):
         with open(path_to_dataset, 'rb') as f:
-
             batches = []
 
             # Split up chunk into batches of BATCH_SIZE
             for readStart, readSize in self.batchify(path_to_dataset, chunkStart, chunkSize):
                 batches.append({"batchStart": readStart, "batchSize": readSize})
-
 
             for batch in batches:
                 f.seek(batch['batchStart'])
@@ -53,13 +49,14 @@ class DataProcessor(object):
                         if line[-1] == ",":    # if line has comma
                             line = line[:-1]  # removing trailing comma
                         try:
-
                             tweet = json.loads(line)
                             self.process_tweet(tweet)
 
                         except Exception as e:
-                            print("Error reading row from JSON file")
+                            print("Error reading row from JSON file - ignoring")
                             print(line)
+                else:
+                    print("batchsize with size 0 detected")
 
     def chunkify(self, path_to_dataset, chunkSize, totalSize):
         with open(path_to_dataset,'rb') as f:
@@ -84,7 +81,7 @@ class DataProcessor(object):
             while True:
                 batchStart = batchEnd
                 # move from current position to current position + chunksize
-                f.seek(batchStart + self.batchSize)
+                f.seek(batchStart + self.BATCH_SIZE)
                 f.readline()
                 batchEnd = f.tell()
                 if batchEnd > chunkStart + totalSize:
