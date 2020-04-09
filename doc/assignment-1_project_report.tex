@@ -1,0 +1,144 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% LaTeX Example: Project Report
+%
+% Source: http://www.howtotex.com
+%
+% Feel free to distribute this example, but please keep the referral
+% to howtotex.com
+% Date: March 2011 
+% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% How to use writeLaTeX: 
+%
+% You edit the source code here on the left, and the preview on the
+% right shows you the result within a few seconds.
+%
+% Bookmark this page and share the URL with your co-authors. They can
+% edit at the same time!
+%
+% You can upload figures, bibliographies, custom classes and
+% styles using the files menu.
+%
+% If you're new to LaTeX, the wikibook is a great place to start:
+% http://en.wikibooks.org/wiki/LaTeX
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Edit the title below to update the display in My Documents
+%\title{Project Report}
+%
+%%% Preamble
+\documentclass[paper=a4, fontsize=11pt]{scrartcl}
+\usepackage[T1]{fontenc}
+\usepackage{fourier}
+
+\usepackage[english]{babel}															% English language/hyphenation
+\usepackage[protrusion=true,expansion=true]{microtype}	
+\usepackage{amsmath,amsfonts,amsthm} % Math packages
+\usepackage[pdftex]{graphicx}	
+\usepackage{url}
+
+\usepackage[backend=biber,style=apa,natbib=true]{biblatex}
+\DeclareLanguageMapping{english}{english-apa}
+\addbibresource{references.bib}
+
+
+%%% Custom sectioning
+\usepackage{sectsty}
+\allsectionsfont{ \normalfont }
+
+
+%%% Custom headers/footers (fancyhdr package)
+\usepackage{fancyhdr}
+\pagestyle{fancyplain}
+\fancyhead{}											% No page header
+\fancyfoot[L]{}											% Empty 
+\fancyfoot[C]{}											% Empty
+\fancyfoot[R]{\thepage}									% Pagenumbering
+\renewcommand{\headrulewidth}{0pt}			% Remove header underlines
+\renewcommand{\footrulewidth}{0pt}				% Remove footer underlines
+\setlength{\headheight}{13.6pt}
+
+
+%%% Equation and float numbering
+\numberwithin{equation}{section}		% Equationnumbering: section.eq#
+\numberwithin{figure}{section}			% Figurenumbering: section.fig#
+\numberwithin{table}{section}				% Tablenumbering: section.tab#
+
+
+%%% Maketitle metadata
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}} 	% Horizontal rule
+
+\title{
+		%\vspace{-1in} 	
+		\usefont{OT1}{bch}{b}{n}
+		\normalfont \normalsize \textsc{University of Melbourne} \\ [25pt]
+		\horrule{0.5pt} \\[0.4cm]
+		\huge Cluster and Cloud Computing Assignment 1 - Project Report \\
+		\horrule{2pt} \\[0.5cm]
+}
+\author{
+		\normalfont 								\normalsize
+        Matthias Bachfischer - Student ID 1133751\\[-3pt]		\normalsize
+        \today
+}
+\date{}
+
+\usepackage[acronym]{glossaries}
+\newacronym{hpc}{HPC}{High Performance Computing}
+\newacronym{gb}{GB}{Gigabyte}
+\newacronym{json}{JSON}{JavaScript Object Notation}
+% Links in footnote
+\usepackage{hyperref}
+
+\newcommand{\shellcmd}[1]{\\\indent\indent\texttt{\footnotesize\# #1}\\}
+
+
+%%% Begin document
+\begin{document}
+\maketitle
+\section{Introduction}
+
+This document serves as a project report for assignment 1 of the Cluster and Cloud Computing course at the University of Melbourne. It describes the general system architecture, commands and configuration parameters for invoking the HPC processing scripts as well as steps that were taken to speed up processing and leverage the available \acrfull{hpc} resources in an efficient manner.
+
+\subsection{Dataset}
+The task for this assignment was to process a dataset called \emph{bigTwitter.json} consisting of multilingual Microposts that were extracted from the Twitter social networking platform\footnote{Twitter social networking platform \url{https://twitter.com}}. The dataset has a total size of 20.7 \acrfull{gb} and is structured in the \acrfull{json} document format.
+
+
+\section{Program setup}
+The software is written in the Python programming language and makes use of the MPI for Python programming library \cite{RN310} to ensure parallel execution of computing steps, e.g. in a multi-core / multi-node \acrshort{hpc} environment. The software was designed to run on the Spartan \acrshort{hpc} system operated by the University of Melbourne \citep{RN309},
+
+\subsection{Instructions for processing on Spartan}
+In order to run the software on Spartan, copy or clone the contents of the folder containing the software into your home directory. Change into the \texttt{slurm} directory - it consists of three files that support the execution of the program in three configurations as stated in the assignment description:
+\begin{table}[h]
+\tiny
+\resizebox{0.8\textwidth}{!}{%
+\begin{tabular}{ll}
+\hline
+\textbf{Resource configuration} & \textbf{SLURM script}               \\ \hline
+1 node and 1 core               & tweetanalyzer\_1node\_1core.slurm   \\
+1 node and 8 cores              & tweetanalyzer\_1node\_8cores.slurm  \\
+2 nodes and 8 cores             & tweetanalyzer\_2nodes\_8cores.slurm \\
+                                &                                    
+\end{tabular}%
+}
+\end{table}
+
+\subsection{Steps taken to parallelize the code}
+
+\section{Results}
+
+% Describe how execution time is measured
+% Include single graph showing execution times
+
+
+\section{Discussion and potential improvement areas}
+
+
+
+
+
+\printbibliography[heading=bibintoc]
+
+
+%%% End document
+\end{document}

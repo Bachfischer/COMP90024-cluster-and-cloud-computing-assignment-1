@@ -1,0 +1,15 @@
+[0] Config.pm:304> INFO - This is Biber 2.12
+[0] Config.pm:307> INFO - Logfile is 'assignment-1_project_report.blg'
+[50] biber-darwin:315> INFO - === Thu Apr  9, 2020, 21:54:07
+[88] Biber.pm:371> INFO - Reading 'assignment-1_project_report.bcf'
+[177] Biber.pm:889> INFO - Found 1 citekeys in bib section 0
+[189] Biber.pm:4093> INFO - Processing section 0
+[203] Biber.pm:4254> INFO - Looking for bibtex format file 'references.bib' for section 0
+[204] bibtex.pm:1523> INFO - LaTeX decoding ...
+[207] bibtex.pm:1340> INFO - Found BibTeX data source 'references.bib'
+[223] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[223] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
+[223] Biber.pm:3921> INFO - Sorting list 'apa/global//global/global' of type 'entry' with template 'apa' and locale 'en-US'
+[223] Biber.pm:3927> INFO - No sort tailoring available for locale 'en-US'
+[225] bbl.pm:636> INFO - Writing 'assignment-1_project_report.bbl' with encoding 'UTF-8'
+[227] bbl.pm:739> INFO - Output to assignment-1_project_report.bbl
