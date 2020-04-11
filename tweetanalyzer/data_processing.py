@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from collections import Counter
-from .utils import extract_hashtags
+from .utils import extract_hashtags, extract_language
 import json
 
 
@@ -25,7 +25,7 @@ class DataProcessor(object):
             self.extracted_hashtags_counter[hashtag] += 1
 
         # Extract language
-        language = tweet['doc']['metadata']['iso_language_code']
+        language = extract_language((tweet))
         self.extracted_language_counter[language] += 1
 
 

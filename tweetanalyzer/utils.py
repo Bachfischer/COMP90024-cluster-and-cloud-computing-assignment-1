@@ -39,6 +39,9 @@ def extract_hashtags(tweet):
 
   return hashtags_in_tweet
 
+def extract_language(tweet):
+  language = tweet['doc']['metadata']['iso_language_code']
+  return language
 
 def get_language(supported_languages, tweet_language_code):
   for language in supported_languages:
