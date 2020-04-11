@@ -1,0 +1,52 @@
+Tweetanalyzer running on rank 5 out of 8 cores
+Tweetanalyzer running on rank 6 out of 8 cores
+Tweetanalyzer running on rank 7 out of 8 cores
+Tweetanalyzer running on rank 0 out of 8 cores
+Tweetanalyzer running on rank 1 out of 8 cores
+Tweetanalyzer running on rank 2 out of 8 cores
+Tweetanalyzer running on rank 3 out of 8 cores
+Tweetanalyzer running on rank 4 out of 8 cores
+Rank 4 received chunk - chunkStart: 10380556877 -  chunkSize 2595139276
+Rank 7 received chunk - chunkStart: 18165977885 -  chunkSize 2595118673
+Rank 0 received chunk - chunkStart: 0 -  chunkSize 2595142358
+Rank 1 received chunk - chunkStart: 2595142358 -  chunkSize 2595137788
+Rank 2 received chunk - chunkStart: 5190280146 -  chunkSize 2595137989
+Rank 3 received chunk - chunkStart: 7785418135 -  chunkSize 2595138742
+Rank 5 received chunk - chunkStart: 12975696153 -  chunkSize 2595138140
+Rank 6 received chunk - chunkStart: 15570834293 -  chunkSize 2595143592
+Error reading row from JSON file - ignoring
+{"total_rows":215443567,"offset":211386044,"rows":[
+Execution time on core with rank 1 was: 0:00:42.205504
+Execution time on core with rank 3 was: 0:00:42.229436
+Execution time on core with rank 2 was: 0:00:42.239625
+Error reading row from JSON file - ignoring
+]}
+Execution time on core with rank 4 was: 0:00:42.369585
+Execution time on core with rank 6 was: 0:00:42.372131
+Execution time on core with rank 7 was: 0:00:42.384844
+Execution time on core with rank 5 was: 0:00:43.375018
+
+Final results
+Most common hashtags in dataset
+1. #auspol,19878
+2. #coronavirus,10110
+3. #มาพ่องเพิ่งอะไร,7531
+4. #firefightaustralia,6812
+5. #oldme,6418
+6. #sydney,6196
+7. #scottyfrommarketing,5185
+8. #grammys,5085
+9. #assange,4689
+10. #sportsrorts,4516
+Most common languages in dataset:
+1. English (en), 3107116
+2. Unknown (und), 252117
+3. Thai (th), 134571
+4. Portuguese (pt), 125858
+5. Spanish (es), 74028
+6. Japanese (ja), 49929
+7. Unknown (tl), 44560
+8. Unknown (in), 42296
+9. French (fr), 38098
+10. Arabic (ar), 24501
+Total execution time was: 0:00:43.700229
