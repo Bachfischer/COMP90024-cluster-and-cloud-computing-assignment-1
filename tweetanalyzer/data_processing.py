@@ -21,6 +21,7 @@ def chunkify(path_to_dataset, chunk_size, total_size):
             if chunk_end == total_size:
                 break
 
+
 def batchify(path_to_dataset, chunk_start, chunk_size, BATCH_SIZE):
     with open(path_to_dataset, 'rb') as f:
         batch_end = chunk_start
@@ -43,11 +44,11 @@ class DataProcessor():
 
     def __init__(self, BATCH_SIZE):
         self.BATCH_SIZE = BATCH_SIZE
-        self.extracted_hashtags_counter = Counter()
+        self.extracted_hashtag_counter = Counter()
         self.extracted_language_counter = Counter()
 
     def retrieve_results(self):
-        result = {"hashtag": self.extracted_hashtags_counter,
+        result = {"hashtag": self.extracted_hashtag_counter,
                   "language": self.extracted_language_counter}
         return result
 
@@ -55,10 +56,10 @@ class DataProcessor():
         # Extract hashtags from all tweets and add to list
         hashtag_list = extract_hashtags(tweet)
         for hashtag in hashtag_list:
-            self.extracted_hashtags_counter[hashtag] += 1
+            self.extracted_hashtag_counter[hashtag] += 1
 
         # Extract language
-        language = extract_language((tweet))
+        language = extract_language(tweet)
         self.extracted_language_counter[language] += 1
 
 

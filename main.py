@@ -85,12 +85,12 @@ def main():
                                    chunk_per_process["chunkSize"])
 
     # Print results per process
-    results = data_processor.retrieve_results()
+    worker_results = data_processor.retrieve_results()
 
     # Print individual results for each process
-    print("\nResults from process " + str(RANK), flush=True)
-    print_results_hashtag_count(results["hashtag"])
-    print_results_language_count(results["language"], supported_languages)
+    # print("\nResults from process " + str(RANK), flush=True)
+    # print_results_hashtag_count(worker_results["hashtag"])
+    # print_results_language_count(worker_results["language"], supported_languages)
 
     # Print execution time for worker nodes
     if RANK != 0:
@@ -99,7 +99,7 @@ def main():
             END_TIME - START_TIME))
 
     # Gather results in master process (rank 0)
-    results_from_processes = COMM.gather(results, root=0)
+    worker_results = COMM.gather(worker_results, root=0)
 
     # Wait until everyone is ready
     COMM.Barrier()
@@ -110,15 +110,15 @@ def main():
         counter_language = Counter()
 
         # sum counter values for each worker process
-        for result in results_from_processes:
+        for result in worker_results:
             counter_hashtag = counter_hashtag + result["hashtag"]
             counter_language = counter_language + result["language"]
 
         # print final results
         print("")
         print("Final results")
-        print_results_hashtag_count(results["hashtag"])
-        print_results_language_count(results["language"], supported_languages)
+        print_results_hashtag_count(counter_hashtag)
+        print_results_language_count(counter_language, supported_languages)
         END_TIME = datetime.now()
         print("Total execution time was: " + str(END_TIME - START_TIME))
 
