@@ -1,102 +1,127 @@
 #!/usr/bin/env python
 
+import argparse
+import os
 from datetime import datetime
 from pathlib import Path
 from collections import Counter
 from mpi4py import MPI
-import os
-import argparse
-from tweetanalyzer.utils import load_supported_languages, print_results
-from tweetanalyzer.data_processing import DataProcessor
+from tweetanalyzer.utils import load_supported_languages, \
+    print_results_language_count, print_results_hashtag_count
+from tweetanalyzer.data_processing import DataProcessor, chunkify
 
-startTime = None
-endTime = None
+# Measure execution time from start of process to finish
+START_TIME = datetime.now()
+END_TIME = None
 
-comm = MPI.COMM_WORLD
-size = comm.Get_size()
-rank = comm.Get_rank()
+# Initialize MPI communication
+COMM = MPI.COMM_WORLD
+SIZE = COMM.Get_size()
+RANK = COMM.Get_rank()
 
-parser = argparse.ArgumentParser(description='Count # of hashtags and languages in Twitter dataset')
-parser.add_argument('--dataset', type=str, default='bigTwitter.json', help='Path to Twitter dataset file')
-parser.add_argument('--language-codes', type=str, default="language_codes.json", help='Path to list of supported language codes')
-parser.add_argument('--batch-size', type=int, default=1024, help='Number of rows to be processed per batch')
+# Parse command line arguments
+parser = argparse.ArgumentParser(
+    description='Count # of hashtags and languages in Twitter dataset')
+parser.add_argument('--dataset', type=str, default='bigTwitter.json',
+                    help='Path to Twitter dataset file')
+parser.add_argument('--language-codes', type=str, default="language_codes.json",
+                    help='Path to list of supported language codes')
+parser.add_argument('--batch-size', type=int, default=1024,
+                    help='Number of rows to be processed per batch')
 args = parser.parse_args()
 
-print("Tweetanalyzer running on rank " + str(rank) + " out of " + str(comm.size) + " cores")
+print("Tweetanalyzer running on rank " + str(RANK) + " out of " + str(
+    COMM.size) + " cores")
 
+# Get current execution directory
 path_current_dir = Path(__file__).parent.absolute()
 
-# Path to dataset in home directory
+# Create path to dataset in home directory
 home_dir = str(Path.home())
 path_dataset_file = home_dir + "/" + args.dataset
 
-# Path to file with supported languages
+# Create path to file with supported languages (e.g. language_codes.json)
 path_language_file = str(path_current_dir.joinpath(args.language_codes))
 
 # Read supported Twitter languages from file
 supported_languages = load_supported_languages(path_language_file)
 
-data_processor = DataProcessor(args.batch_size)
 
-startTime = datetime.now()
+def main():
+    """Main method with implementation of scatter / gather logic for parallel
+    execution in MPI environment
+    """
+    data_processor = DataProcessor(args.batch_size)
 
-if rank == 0:
+    if RANK == 0:
 
-  # Read dataset
-  #tweets = load_dataset(dataset_file)
-  dataset_size_total = os.path.getsize(path_dataset_file)
-  dataset_size_per_process = dataset_size_total / size
+        # Get size of dataset and split dataset into equal parts
+        dataset_size_total = os.path.getsize(path_dataset_file)
+        dataset_size_per_process = dataset_size_total / SIZE
 
-  # dividing data into chunks
-  chunks = []
+        # dividing data into chunks and store byte positions of chunks in array
+        chunks = []
+        for chunkStart, chunkSize in chunkify(path_dataset_file,
+                                              int(dataset_size_per_process),
+                                              dataset_size_total):
+            chunks.append({"chunkStart": chunkStart, "chunkSize": chunkSize})
 
-  for chunkStart, chunkSize in data_processor.chunkify(path_dataset_file, int(dataset_size_per_process), dataset_size_total):
-    chunks.append({"chunkStart": chunkStart, "chunkSize": chunkSize})
+    else:
+        chunks = None
 
-else:
-  chunks = None
+    # Wait until all processes have reached this step
+    COMM.Barrier()
 
-comm.Barrier()
+    # Scatter chunks to each individual process
+    chunk_per_process = COMM.scatter(chunks, root=0)
+
+    print("Rank " + str(RANK) + " received chunk - chunkStart: " + str(
+        chunk_per_process['chunkStart']) + " -  chunkSize " +
+          str(chunk_per_process['chunkSize']))
+
+    # Start processing of chunk
+    data_processor.process_wrapper(path_dataset_file,
+                                   chunk_per_process["chunkStart"],
+                                   chunk_per_process["chunkSize"])
+
+    # Print results per process
+    results = data_processor.retrieve_results()
+
+    # Print individual results for each process
+    print("\nResults from process " + str(RANK), flush=True)
+    print_results_hashtag_count(results["hashtag"])
+    print_results_language_count(results["language"], supported_languages)
+
+    # Print execution time for worker nodes
+    if RANK != 0:
+        END_TIME = datetime.now()
+        print("Execution time on core with rank " + str(RANK) + " was: " + str(
+            END_TIME - START_TIME))
+
+    # Gather results in master process (rank 0)
+    results_from_processes = COMM.gather(results, root=0)
+
+    # Wait until everyone is ready
+    COMM.Barrier()
+
+    if RANK == 0:
+        # Calculate final results using results from all worker processes
+        counter_hashtag = Counter()
+        counter_language = Counter()
+
+        # sum counter values for each worker process
+        for result in results_from_processes:
+            counter_hashtag = counter_hashtag + result["hashtag"]
+            counter_language = counter_language + result["language"]
+
+        # print final results
+        print("")
+        print("Final results")
+        print_results_hashtag_count(results["hashtag"])
+        print_results_language_count(results["language"], supported_languages)
+        END_TIME = datetime.now()
+        print("Total execution time was: " + str(END_TIME - START_TIME))
 
 
-# scatter requires a list of exactly comm.size elements as data to be scattered; so
-chunk_per_process = comm.scatter(chunks, root=0)
-
-print("chunkStart: " + str(chunk_per_process['chunkStart']) + " -  chunkSize " + str(chunk_per_process['chunkSize']))
-
-# Start processing
-data_processor.process_wrapper(path_dataset_file, chunk_per_process["chunkStart"], chunk_per_process["chunkSize"])
-
-# Collect results
-results = data_processor.retrieve_results()
-
-print("\nResults from process " + str(rank), flush=True)
-print_results(results["hashtag"], results["language"], supported_languages)
-
-
-results_from_processes = comm.gather(results, root=0)
-
-# Print execution time for worker nodes
-if rank != 0:
-  endTime = datetime.now()
-  print("Execution time on core with rank " + str(rank) + " was: " + str(endTime - startTime))
-
-#Wait until everyone is ready
-comm.Barrier()
-
-
-if rank == 0:
-  counter_hashtag = Counter()
-  counter_language = Counter()
-
-  for result in results_from_processes:
-    counter_hashtag = counter_hashtag + result["hashtag"]
-    counter_language = counter_language + result["language"]
-
-  print("")
-  print("Final results")
-  print_results(counter_hashtag, counter_language, supported_languages)
-  endTime = datetime.now()
-  print("Total execution time was: " + str(endTime- startTime))
-
-
+if __name__ == "__main__":
+    main()
