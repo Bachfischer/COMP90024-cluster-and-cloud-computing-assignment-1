@@ -1,5 +1,5 @@
 % $ biblatex auxiliary file $
-% $ biblatex bbl format version 3.0 $
+% $ biblatex bbl format version 3.1 $
 % Do not modify the above lines!
 %
 % This is an auxiliary file used by the 'biblatex' package.
@@ -19,27 +19,93 @@
 
 \refsection{0}
   \datalist[entry]{apa/global//global/global}
+    \entry{RN310}{article}{}
+      \name{author}{4}{}{%
+        {{un=0,uniquepart=base,hash=3fec6ff64f92c0cbd8248e66fb644454}{%
+           family={Dalcin},
+           familyi={D\bibinitperiod},
+           given={Lisandro\bibnamedelima D},
+           giveni={L\bibinitperiod\bibinitdelim D\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=a7b8387711d83f4804b347f49a4ad25f}{%
+           family={Paz},
+           familyi={P\bibinitperiod},
+           given={Rodrigo\bibnamedelima R},
+           giveni={R\bibinitperiod\bibinitdelim R\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=63830c46baa10637ad167c620ed98ea0}{%
+           family={Kler},
+           familyi={K\bibinitperiod},
+           given={Pablo\bibnamedelima A},
+           giveni={P\bibinitperiod\bibinitdelim A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=fab9bf7538991504221a744806ed03fb}{%
+           family={Cosimo},
+           familyi={C\bibinitperiod},
+           given={Alejandro},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{23de1ea6cb8418fc6ebeabf21889a0a7}
+      \strng{fullhash}{7ff671a2e6d3a6294f856aa83c808939}
+      \strng{bibnamehash}{7ff671a2e6d3a6294f856aa83c808939}
+      \strng{authorbibnamehash}{7ff671a2e6d3a6294f856aa83c808939}
+      \strng{authornamehash}{23de1ea6cb8418fc6ebeabf21889a0a7}
+      \strng{authorfullhash}{7ff671a2e6d3a6294f856aa83c808939}
+      \field{sortinit}{D}
+      \field{sortinithash}{c438b3d5d027251ba63f5ed538d98af5}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0309-1708}
+      \field{journaltitle}{Advances in Water Resources}
+      \field{number}{9}
+      \field{title}{Parallel distributed computing using Python}
+      \field{type}{Journal Article}
+      \field{volume}{34}
+      \field{year}{2011}
+      \field{pages}{1124\bibrangedash 1139}
+      \range{pages}{16}
+    \endentry
+    \entry{RN311}{report}{}
+      \list{institution}{1}{%
+        {International Organization for Standardization}%
+      }
+      \list{location}{1}{%
+        {Geneva, CH}%
+      }
+      \field{sortinit}{I}
+      \field{sortinithash}{9417e9a1288a9371e2691d999083ed39}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labeltitlesource}{title}
+      \field{title}{ISO 639-1:2002, Codes for the representation of names of languages}
+      \field{type}{Report}
+      \field{year}{2002}
+    \endentry
     \entry{RN309}{inproceedings}{}
       \name{author}{4}{}{%
-        {{uniquename=0,uniquepart=base,hash=7ee79595a96ba8e9e533e23ec416f472}{%
+        {{un=0,uniquepart=base,hash=7ee79595a96ba8e9e533e23ec416f472}{%
            family={Lafayette},
            familyi={L\bibinitperiod},
            given={Lev},
            giveni={L\bibinitperiod},
            givenun=0}}%
-        {{uniquename=0,uniquepart=base,hash=8bffbe4c040df78580e9a998be2944d0}{%
+        {{un=0,uniquepart=base,hash=8bffbe4c040df78580e9a998be2944d0}{%
            family={Sauter},
            familyi={S\bibinitperiod},
            given={Greg},
            giveni={G\bibinitperiod},
            givenun=0}}%
-        {{uniquename=0,uniquepart=base,hash=ed1b033873093a372998b8c12f0911cb}{%
+        {{un=0,uniquepart=base,hash=ed1b033873093a372998b8c12f0911cb}{%
            family={Vu},
            familyi={V\bibinitperiod},
            given={Linh},
            giveni={L\bibinitperiod},
            givenun=0}}%
-        {{uniquename=0,uniquepart=base,hash=20d94b6f9c8a68327d94608b46a92c19}{%
+        {{un=0,uniquepart=base,hash=20d94b6f9c8a68327d94608b46a92c19}{%
            family={Meade},
            familyi={M\bibinitperiod},
            given={Bernard},
@@ -56,7 +122,7 @@
       \strng{authornamehash}{7c1df890946a76542e14e0710d88c5aa}
       \strng{authorfullhash}{9ba3ce8d0b48b8b0dd724cb580d17296}
       \field{sortinit}{L}
-      \field{sortinithash}{2c7981aaabc885868aba60f0c09ee20f}
+      \field{sortinithash}{dad3efd0836470093a7b4a7bb756eb8c}
       \field{extradatescope}{labelyear}
       \field{labeldatesource}{year}
       \true{uniqueprimaryauthor}
@@ -66,9 +132,20 @@
       \field{title}{Spartan Performance and Flexibility: An HPC-Cloud Chimera}
       \field{type}{Conference Proceedings}
       \field{year}{2016}
-      \verb{doi}
-      \verb doi.org/10.4225/49/58ead90dceaaa
-      \endverb
+    \endentry
+    \entry{RN312}{report}{}
+      \list{institution}{1}{%
+        {Message Passing Interface Forum}%
+      }
+      \field{sortinit}{M}
+      \field{sortinithash}{2e5c2f51f7fa2d957f3206819bf86dc3}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labeltitlesource}{title}
+      \field{month}{9}
+      \field{title}{MPI: A Message-Passing Interface Standard Version 2.2}
+      \field{type}{Report}
+      \field{year}{2009}
     \endentry
   \enddatalist
 \endrefsection

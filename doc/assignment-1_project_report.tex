@@ -56,7 +56,7 @@
 \fancyfoot[R]{\thepage}									% Pagenumbering
 \renewcommand{\headrulewidth}{0pt}			% Remove header underlines
 \renewcommand{\footrulewidth}{0pt}				% Remove footer underlines
-\setlength{\headheight}{13.6pt}
+\setlength{\headheight}{13,6pt}
 
 
 %%% Equation and float numbering
@@ -71,10 +71,10 @@
 \title{
 		%\vspace{-1in} 	
 		\usefont{OT1}{bch}{b}{n}
-		\normalfont \normalsize \textsc{University of Melbourne} \\ [25pt]
-		\horrule{0.5pt} \\[0.4cm]
-		\huge Cluster and Cloud Computing Assignment 1 - Project Report \\
-		\horrule{2pt} \\[0.5cm]
+		\normalfont \normalsize \textsc{The University of Melbourne} \\ [15pt]
+		\horrule{0.5pt} \\[0.1cm]
+		\huge COMP90024 Cluster and Cloud Computing Assignment 1 - Project Report \\
+		\horrule{2pt} \\[0.1cm]
 }
 \author{
 		\normalfont 								\normalsize
@@ -83,59 +83,167 @@
 }
 \date{}
 
+% define acronyms
 \usepackage[acronym]{glossaries}
-\newacronym{hpc}{HPC}{High Performance Computing}
+
+\newacronym{api}{API}{Application Programming Interface}
 \newacronym{gb}{GB}{Gigabyte}
+\newacronym{hpc}{HPC}{High Performance Computing}
 \newacronym{json}{JSON}{JavaScript Object Notation}
+\newacronym{mpi}{MPI}{Message Passing Interface}
+
+
 % Links in footnote
 \usepackage{hyperref}
 
 \newcommand{\shellcmd}[1]{\\\indent\indent\texttt{\footnotesize\# #1}\\}
 
+\usepackage{xcolor}
+
+% reduce line distance in enumeration
+\usepackage{enumitem}
+\setlist[enumerate]{itemsep=0mm}
+
+% plot bar charts
+\usepackage{pgfplots}
+
+\usepackage{csquotes}
+
+% wrap figures with text
+\usepackage{wrapfig}
+
+% Configure continuous counting (across sections)
+\usepackage{chngcntr}
+\counterwithout{figure}{section}
+\counterwithout{table}{section}
+
+% Support line break for texttt
+\usepackage[htt]{hyphenat}
 
 %%% Begin document
 \begin{document}
 \maketitle
 \section{Introduction}
-
-This document serves as a project report for assignment 1 of the Cluster and Cloud Computing course at the University of Melbourne. It describes the general system architecture, commands and configuration parameters for invoking the HPC processing scripts as well as steps that were taken to speed up processing and leverage the available \acrfull{hpc} resources in an efficient manner.
+This document serves as a project report for assignment 1 of the COMP90024 Cluster and Cloud Computing course at the University of Melbourne. It describes the general system architecture that was implemented, instructions and commands required for invoking the scripts on the Spartan \acrfull{hpc} cluster as well as steps that were taken to parallelize the processing and leverage the available resources in an efficient way.
 
 \subsection{Dataset}
-The task for this assignment was to process a dataset called \emph{bigTwitter.json} consisting of multilingual Microposts that were extracted from the Twitter social networking platform\footnote{Twitter social networking platform \url{https://twitter.com}}. The dataset has a total size of 20.7 \acrfull{gb} and is structured in the \acrfull{json} document format.
+\label{dataset}
+The task for this assignment was to process the \emph{bigTwitter.json} dataset which consists of multilingual Microposts that were extracted from the Twitter social networking platform\footnote{Twitter social networking platform \url{https://twitter.com}}. The dataset has a total size of 20.7 \acrfull{gb} and is structured in the \acrfull{json} document format.
 
-
-\section{Program setup}
-The software is written in the Python programming language and makes use of the MPI for Python programming library \cite{RN310} to ensure parallel execution of computing steps, e.g. in a multi-core / multi-node \acrshort{hpc} environment. The software was designed to run on the Spartan \acrshort{hpc} system operated by the University of Melbourne \citep{RN309},
-
-\subsection{Instructions for processing on Spartan}
-In order to run the software on Spartan, copy or clone the contents of the folder containing the software into your home directory. Change into the \texttt{slurm} directory - it consists of three files that support the execution of the program in three configurations as stated in the assignment description:
-\begin{table}[h]
+\subsection{Instructions}
+To run the software on Spartan, copy or clone the contents of the folder containing the source code into your home directory. Change into the \texttt{slurm} directory and examine its contents. As shown in Table \ref{tab:slurm_scripts}, this directory consists of three files that allow the user to trigger the execution of the program in three different configurations.
+\begin{table}[]
 \tiny
-\resizebox{0.8\textwidth}{!}{%
-\begin{tabular}{ll}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lll}
 \hline
-\textbf{Resource configuration} & \textbf{SLURM script}               \\ \hline
-1 node and 1 core               & tweetanalyzer\_1node\_1core.slurm   \\
-1 node and 8 cores              & tweetanalyzer\_1node\_8cores.slurm  \\
-2 nodes and 8 cores             & tweetanalyzer\_2nodes\_8cores.slurm \\
-                                &                                    
-\end{tabular}%
-}
+\textbf{Resource configuration} & \textbf{SLURM script}               & \textbf{Execution time} \\ \hline
+1 node and 1 core               & tweetanalyzer\_1node\_1core.slurm   & 447.262 seconds                             \\
+1 node and 8 cores              & tweetanalyzer\_1node\_8cores.slurm  & 59.062 seconds                               \\
+2 nodes and 8 cores             & tweetanalyzer\_2nodes\_8cores.slurm & 65.907 seconds \\
+\hline                             
+\end{tabular}}
+\label{tab:slurm_scripts}
+\caption{Resource configuration, corresponding SLURM script and execution time}
 \end{table}
+\newline
+In order to start processing the dataset, run the command \texttt{sbatch scriptname} and replace \texttt{scriptname} with the filename of the script that you want to run (i.e. for 1 node - 1 core configuration, run \texttt{sbatch  tweetanalyzer\_1node\_1core.slurm}). Executing this command will submit a new job to Slurm queue on Spartan \acrshort{hpc} cluster and schedule it for execution.
 
-\subsection{Steps taken to parallelize the code}
-
-\section{Results}
-
-% Describe how execution time is measured
-% Include single graph showing execution times
-
-
-\section{Discussion and potential improvement areas}
+\section{System description}
+\label{cha:system_description}
+The software that was developed for this assignment is written in the Python programming language and makes use of the MPI for Python programming library \citep{RN310} to ensure parallel execution of computing steps in a multi-core / multi-node computing scenario. The software was specifically designed to run on the Spartan \acrshort{hpc} system operated by the University of Melbourne \citep{RN309},
 
 
 
+\subsection{General processing steps}
+% steps taken to parallelize the code (chunkify, batchify)
+As mentioned in section \ref{cha:system_description}, the software that was implemented for this assignment relies on the \acrfull{mpi} specification - in particular, it uses Scatter and Gather functions to scatter instructions from the master process to the worker processes and gather the results from the worker proceses in the master process \citep{RN312}. The basic algorithm that was implemented to ensure parallel execution across multiple CPU cores is as follows:
+\begin{enumerate}
+  \item Create \emph{n} worker processes where \#\emph{n} denotes number of available cores
+  \item Split the dataset into \emph{n} equally sized chunks using method \emph{chunkify}
+  \item Distribute parameters \emph{chunkStart, chunkSize} to worker processes via \emph{Scatter} function, where \emph{chunkStart, chunkSize} denotes the offset and size of the chunk in bytes (starting from the beginning of the file)
+  \item Split chunks into equally sized batches of size 1024 bytes using method \emph{batchify}
+  \item Processes individual batches line by line as described below
+  \item Collect counter results from worker processes in master process via \emph{Gather} function
+  \item Aggregate individual counter values and print final results
+\end{enumerate}
 
+
+\subsection{Task 1: Counting of tweet hashtags}
+\label{cha:task_1}
+In task 1, the objective was to count the occurrences of the top-10 most common hashtags within the dataset. Conveniently, the hashtags for the individual tweets have already been extracted and are present in the \acrshort{json} field \emph{tweet['doc']['entities']['hashtags']} of each tweet. 
+A hashtag string can match if it has upper/lower case exact substrings and needs follow the Twitter rules for hashtags\footnote{How to use Twitter hashtags \url{https://help.twitter.com/en/using-twitter/how-to-use-hashtags}} (i.e. no spaces and no punctuation are allowed in a hashtag). 
+In accordance with the given rules for hashtag format, the tweet hashtags were processed according to the following procedure:
+\begin{enumerate}
+  \item Convert hashtags to lower-case strings
+  \item Split the individual strings if punctuation marks or spaces (except underscore \_) occur
+  \item Use the first part of string (if a punctuation mark is present)
+\end{enumerate}
+An example for matching hashtag strings is given in Example 2.2.1: 
+\vspace{5pt}
+\newline
+\vspace{5pt}
+\fcolorbox{black}{gray!15}{
+\begin{minipage}{\columnwidth}
+\textbf{Example 2.2.1:}
+\newline
+\textbf{Original:} \#covid19, \#Covid19, \#COVID19, \#covid19.2020 % further examples, e.g. punctuation
+\newline
+\textbf{Processed:} \#covid19
+\end{minipage}}
+
+During the processing step (i.e. call to \texttt{process\_tweet()}), a list of hashtags for a particular tweet is extracted and a counter variable \texttt{extracted\_hashtags\_counter} keeps track of the number of occurrences of a particular hashtag in the dataset.
+
+\subsection{Task 2: Counting of tweet language codes} 
+Objective of task 2 was to count the top-10 most common languages of the tweets that are present within the dataset. The language attribute of a particular tweet can be extracted from the \acrshort{json} field \emph{tweet['doc']['metadata']['iso\_language\_code']} of each tweet. The language attribute is stored as a two-letter code as specified in the ISO 639-1 specification \citep{RN311} and needs to be mapped to the corresponding ISO language name. 
+\newline
+In order to achieve this, the list of languages along with the language code supported by Twitter was obtained by using the Twitter \acrfull{api} endpoint \emph{GET help/languages}\footnote{Get Twitter supported languages \url{https://developer.twitter.com/en/docs/developer-utilities/supported-languages/api-reference/get-help-languages}}. The result of this \acrshort{api} call is stored in the file \texttt{language\_codes.json}. Since setting up \acrshort{api} communication with Twitter has not been within the explicit scope of this assignment, the details of how the file \texttt{language\_codes.json} was obtained is left out of this project report.
+\newline
+Similar to the procedure described in section \ref{cha:task_1}, the language code of a particular tweet is extracted during the call to \texttt{process\_tweet()} and a counter variable \texttt{extracted\_language\_counter} keeps track of the number of occurrences of a particular language code in the dataset. When printing the final result output, the file \texttt{language\_codes.json} is then used to map the two-letter language code to its corresponding language name (e.g.  language code ''en" corresponds to "English").
+
+\section{Performance results}
+The system architecture presented in this report was tested on the dataset described in section \ref{dataset}. The dataset was processed using three different computing configurations: 1 node - 1 core, 1 node - 8 cores and 2 nodes - eight cores (i.e. 4 cores per node).
+\begin{wrapfigure}{r}{0pt}
+\begin{tikzpicture}
+\begin{axis}[
+	ybar,
+	height=7cm,
+	bar width=35,
+	enlarge x limits=0.15,
+	scaled y ticks = false,
+    	ymin=0,ymax=500,
+	ymajorgrids = true,
+	%minor tick num=1,
+	%yminorgrids = true,
+	ytick={0,50,100,...,500},
+	symbolic x coords={1 node 1 core,1 node 8 cores,2 nodes 8 cores},
+	xticklabel style={text width=2cm,align=center},
+	xtick=data,
+	ylabel={Execution time (in seconds)},
+	ticklabel style = {font=\small},
+	nodes near coords,
+    	nodes near coords align={vertical},
+	nodes near coords style={font=\boldmath},
+]
+\addplot [blue!20!black,fill=blue!80!white]
+	coordinates {
+	(1 node 1 core,447.262)
+	(1 node 8 cores,59.062)
+	(2 nodes 8 cores,65.907)
+};
+\end{axis}
+\end{tikzpicture}
+\label{executiontime}
+\caption{Performance benchmark}
+\end{wrapfigure}
+For each process, the execution time from when the process was started until when the process was finished was measured. To measure the total execution time, the execution time of the master process identified with rank 0 was used.
+\newline
+As shown in figure \ref{executiontime}, the configuration running on 1 node - 8 cores achieves best performance and is able to finish the processing of the dataset in 59.06 seconds. The configuration running on 2 nodes - 8 cores requires approximately 5 seconds more - this is probably caused by the communication overhead involved in scattering instructions to a different node via the network and subsequently gathering the results from this node. The 1 node - 1 core configuration performs worst and takes approximately 447 seconds to complete. The results of this benchmark are not surprising, as they show the great benefit of parallelization when it comes to processing in a big data context.
+
+\section{Conclusion}
+The objective of this assignment was to efficiently process a large dataset using the \acrshort{hpc} facilities provided by the University of Melbourne. As part of this, a program was developed that efficiently processes the dataset in small batches in parallel. It has been shown that the approach that was taken to parallelize the execution enabled the processing of a 20 \acrshort{gb} Twitter dataset in less than one minute in the optimal configuration (1 node - 8 cores scenario).
+\newline
+Moreover, the implementation used for this assignment does not rely on any external libraries (expect MPI for Python) and can therefore be applied in a multitude of environments, thus making it highly reusable when dealing with large datasets in \acrshort{hpc} environments.
 
 \printbibliography[heading=bibintoc]
 
