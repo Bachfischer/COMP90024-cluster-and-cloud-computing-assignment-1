@@ -1,12 +1,5 @@
 # Cluster and Cloud Computing - Assignment 1
 
-## TODO
-
-
-- Setup Code Linter
-
-- Add code comments
-
 ## Overview
 
 This repository contains the source code for assignment 1 of the COMP90024 Cluster and Cloud Computing course at the University of Melbourne.
@@ -20,6 +13,7 @@ This repository contains the source code for assignment 1 of the COMP90024 Clust
 
 * `data/` -- datasets used for testing 
 * `doc/` -- documentation and implementation notes
+* `output/` -- Output from previous submission runs on Spartan
 * `playground/` -- scripts used for Twitter API communication
 * `slurm/` -- slurm scripts for submission to Spartan queue
 * `tweetanalyzer/` -- helper and utility functions
