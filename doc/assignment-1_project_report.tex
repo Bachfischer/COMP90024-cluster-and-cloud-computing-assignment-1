@@ -98,7 +98,7 @@
 
 \newcommand{\shellcmd}[1]{\\\indent\indent\texttt{\footnotesize\# #1}\\}
 
-\usepackage{xcolor}
+\usepackage[dvipsnames]{xcolor}
 
 % reduce line distance in enumeration
 \usepackage{enumitem}
@@ -138,9 +138,9 @@ To run the software on Spartan, copy or clone the contents of the folder contain
 \begin{tabular}{lll}
 \hline
 \textbf{Resource configuration} & \textbf{SLURM script}               & \textbf{Execution time} \\ \hline
-1 node and 1 core               & tweetanalyzer\_1node\_1core.slurm   & 447.262 seconds                             \\
-1 node and 8 cores              & tweetanalyzer\_1node\_8cores.slurm  & 59.062 seconds                               \\
-2 nodes and 8 cores             & tweetanalyzer\_2nodes\_8cores.slurm & 65.907 seconds \\
+1 node and 1 core               & tweetanalyzer\_1node\_1core.slurm   & 386.23 seconds                             \\
+1 node and 8 cores              & tweetanalyzer\_1node\_8cores.slurm  & 43.70 seconds                               \\
+2 nodes and 8 cores             & tweetanalyzer\_2nodes\_8cores.slurm & 47.36 seconds \\
 \hline                             
 \end{tabular}}
 \label{tab:slurm_scripts}
@@ -207,11 +207,11 @@ The system architecture presented in this report was tested on the dataset descr
 \begin{tikzpicture}
 \begin{axis}[
 	ybar,
-	height=7cm,
+	height=6.5cm,
 	bar width=35,
 	enlarge x limits=0.15,
 	scaled y ticks = false,
-    	ymin=0,ymax=500,
+    	ymin=0,ymax=450,
 	ymajorgrids = true,
 	%minor tick num=1,
 	%yminorgrids = true,
@@ -225,23 +225,23 @@ The system architecture presented in this report was tested on the dataset descr
     	nodes near coords align={vertical},
 	nodes near coords style={font=\boldmath},
 ]
-\addplot [blue!20!black,fill=blue!80!white]
+\addplot [NavyBlue!20!black,fill=NavyBlue!80!white]
 	coordinates {
-	(1 node 1 core,447.262)
-	(1 node 8 cores,59.062)
-	(2 nodes 8 cores,65.907)
+	(1 node 1 core,386.23)
+	(1 node 8 cores,43.70)
+	(2 nodes 8 cores,47.36)
 };
 \end{axis}
 \end{tikzpicture}
 \label{executiontime}
 \caption{Performance benchmark}
 \end{wrapfigure}
-For each process, the execution time from when the process was started until when the process was finished was measured. To measure the total execution time, the execution time of the master process identified with rank 0 was used.
+For each process, the execution time from when the process was started until when the process was finished was measured. To measure the total execution time, the execution time of the master process (rank 0) was used.
 \newline
-As shown in figure \ref{executiontime}, the configuration running on 1 node - 8 cores achieves best performance and is able to finish the processing of the dataset in 59.06 seconds. The configuration running on 2 nodes - 8 cores requires approximately 5 seconds more - this is probably caused by the communication overhead involved in scattering instructions to a different node via the network and subsequently gathering the results from this node. The 1 node - 1 core configuration performs worst and takes approximately 447 seconds to complete. The results of this benchmark are not surprising, as they show the great benefit of parallelization when it comes to processing in a big data context.
+As shown in figure \ref{executiontime}, the configuration running on 1 node - 8 cores achieves best performance and is able to finish the processing of the dataset in 43.70 seconds. The configuration running on 2 nodes - 8 cores requires approximately 3.5 seconds more - this is probably caused by the communication overhead involved in scattering instructions to a different node via the network and subsequently gathering the results from this node. The 1 node - 1 core configuration performs worst and takes approximately 386 seconds to complete. The results of this benchmark are not surprising, as they show the great benefit of parallelization when it comes to processing in a big data context.
 
 \section{Conclusion}
-The objective of this assignment was to efficiently process a large dataset using the \acrshort{hpc} facilities provided by the University of Melbourne. As part of this, a program was developed that efficiently processes the dataset in small batches in parallel. It has been shown that the approach that was taken to parallelize the execution enabled the processing of a 20 \acrshort{gb} Twitter dataset in less than one minute in the optimal configuration (1 node - 8 cores scenario).
+The objective of this assignment was to efficiently process a large dataset using the \acrshort{hpc} facilities provided by the University of Melbourne. As part of this, a program was developed that efficiently processes the dataset in small batches in parallel. It has been shown that the approach that was taken to parallelize the execution enabled the processing of a 20 \acrshort{gb} Twitter dataset in less than 44 seconds in the optimal configuration (1 node - 8 cores scenario).
 \newline
 Moreover, the implementation used for this assignment does not rely on any external libraries (expect MPI for Python) and can therefore be applied in a multitude of environments, thus making it highly reusable when dealing with large datasets in \acrshort{hpc} environments.
 
