@@ -159,11 +159,11 @@ The software that was developed for this assignment is written in the Python pro
 % steps taken to parallelize the code (chunkify, batchify)
 As mentioned in section \ref{cha:system_description}, the software that was implemented for this assignment relies on the \acrfull{mpi} specification - in particular, it uses Scatter and Gather functions to scatter instructions from the master process to the worker processes and gather the results from the worker proceses in the master process \citep{RN312}. The basic algorithm that was implemented to ensure parallel execution across multiple CPU cores is as follows:
 \begin{enumerate}
-  \item Create \emph{n} worker processes where \#\emph{n} denotes number of available cores
+  \item Create \emph{n} worker processes where \emph{n} denotes number of available cores
   \item Split the dataset into \emph{n} equally sized chunks using method \emph{chunkify}
   \item Distribute parameters \emph{chunkStart, chunkSize} to worker processes via \emph{Scatter} function, where \emph{chunkStart, chunkSize} denotes the offset and size of the chunk in bytes (starting from the beginning of the file)
   \item Split chunks into equally sized batches of size 1024 bytes using method \emph{batchify}
-  \item Processes individual batches line by line as described below
+  \item Processes individual batches line by line as described in section \ref{cha:task_1} and \ref{cha:task_2}
   \item Collect counter results from worker processes in master process via \emph{Gather} function
   \item Aggregate individual counter values and print final results
 \end{enumerate}
@@ -195,6 +195,7 @@ An example for matching hashtag strings is given in Example 2.2.1:
 During the processing step (i.e. call to \texttt{process\_tweet()}), a list of hashtags for a particular tweet is extracted and a counter variable \texttt{extracted\_hashtags\_counter} keeps track of the number of occurrences of a particular hashtag in the dataset.
 
 \subsection{Task 2: Counting of tweet language codes} 
+\label{cha:task_2}
 Objective of task 2 was to count the top-10 most common languages of the tweets that are present within the dataset. The language attribute of a particular tweet can be extracted from the \acrshort{json} field \emph{tweet['doc']['metadata']['iso\_language\_code']} of each tweet. The language attribute is stored as a two-letter code as specified in the ISO 639-1 specification \citep{RN311} and needs to be mapped to the corresponding ISO language name. 
 \newline
 In order to achieve this, the list of languages along with the language code supported by Twitter was obtained by using the Twitter \acrfull{api} endpoint \emph{GET help/languages}\footnote{Get Twitter supported languages \url{https://developer.twitter.com/en/docs/developer-utilities/supported-languages/api-reference/get-help-languages}}. The result of this \acrshort{api} call is stored in the file \texttt{language\_codes.json}. Since setting up \acrshort{api} communication with Twitter has not been within the explicit scope of this assignment, the details of how the file \texttt{language\_codes.json} was obtained is left out of this project report.
