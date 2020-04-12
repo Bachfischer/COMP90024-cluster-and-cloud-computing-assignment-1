@@ -59,7 +59,7 @@ def main():
         dataset_size_total = os.path.getsize(path_dataset_file)
         dataset_size_per_process = dataset_size_total / SIZE
 
-        # dividing data into chunks and store byte positions of chunks in array
+        # divide data into chunks and store byte positions of chunks in array
         chunks = []
         for chunkStart, chunkSize in chunkify(path_dataset_file,
                                               int(dataset_size_per_process),
@@ -109,12 +109,12 @@ def main():
         counter_hashtag = Counter()
         counter_language = Counter()
 
-        # sum counter values for each worker process
+        # Sum counter values for each worker process
         for result in worker_results:
             counter_hashtag = counter_hashtag + result["hashtag"]
             counter_language = counter_language + result["language"]
 
-        # print final results
+        # Print final results
         print("")
         print("Final results")
         print_results_hashtag_count(counter_hashtag)
