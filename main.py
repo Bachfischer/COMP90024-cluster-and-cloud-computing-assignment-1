@@ -10,6 +10,11 @@ from tweetanalyzer.utils import load_supported_languages, \
     print_results_language_count, print_results_hashtag_count
 from tweetanalyzer.data_processing import DataProcessor, chunkify
 
+'''
+Measure execution time of each process by stopping the time via datetime.now()
+and calculating the difference
+'''
+
 # Measure execution time from start of process to finish
 START_TIME = datetime.now()
 END_TIME = None
@@ -48,8 +53,11 @@ supported_languages = load_supported_languages(path_language_file)
 
 
 def main():
-    """Main method with implementation of scatter / gather logic for parallel
-    execution in MPI environment
+    """Main method with implementation of scatter / gather logic
+
+    Rank 0 (the master process) splits the dataset into smaller chunks
+    chunkStart denotes offset of the chunk from beginning of file in bytes
+    chunkSize denote size of the chunk in bytes
     """
     data_processor = DataProcessor(args.batch_size)
 
@@ -69,10 +77,10 @@ def main():
     else:
         chunks = None
 
-    # Wait until all processes have reached this step
+    # Wait until all processes are ready
     COMM.Barrier()
 
-    # Scatter chunks to each individual process
+    # Scatter sends chunks to each individual process (i.e. chunkStart, chunkSize)
     chunk_per_process = COMM.scatter(chunks, root=0)
 
     print("Rank " + str(RANK) + " received chunk - chunkStart: " + str(
@@ -84,13 +92,8 @@ def main():
                                    chunk_per_process["chunkStart"],
                                    chunk_per_process["chunkSize"])
 
-    # Print results per process
+    # Retrieve results from process
     worker_results = data_processor.retrieve_results()
-
-    # Print individual results for each process
-    # print("\nResults from process " + str(RANK), flush=True)
-    # print_results_hashtag_count(worker_results["hashtag"])
-    # print_results_language_count(worker_results["language"], supported_languages)
 
     # Print execution time for worker nodes
     if RANK != 0:
@@ -101,7 +104,7 @@ def main():
     # Gather results in master process (rank 0)
     worker_results = COMM.gather(worker_results, root=0)
 
-    # Wait until everyone is ready
+    # Wait until all processes are ready
     COMM.Barrier()
 
     if RANK == 0:
